@@ -1,8 +1,9 @@
 {
-    "output_name": "unet.h5",
+    "output_name": "autoencoder.h5",
     "input_shape": [256, 256, 3],
-    "initial_filters": 64,
-    "depth": 3,
+    "encoder_layer_sizes": [32, 64, 128],
+    "bottleneck_size": 256,
+    "decoder_layer_sizes": [128, 64, 328],
     "conv_per_block": 2,
     "kernel_size": [3, 3],
     "activation": "relu",
@@ -18,5 +19,5 @@
       "64,0,128": 6,
       "0,0,0": 7
     },
-    "data_path": "..//..//data"
+    "data_path": "..\\data"
   }
