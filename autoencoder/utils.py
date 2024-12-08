@@ -71,6 +71,7 @@ def fcn_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_
         x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
         x = layers.BatchNormalization()(x)
         x = layers.Activation(activation)(x)
+    x = layers.MaxPool2D(pool_size=(2,2))(x)
     return x
 
 def fcn_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
@@ -84,7 +85,8 @@ def fcn_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_lay
     return x
 
 def fcn_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
-    x = layers.Conv2DTranspose(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
+    x = layers.UpSampling2D(size=(2,2))(append_layer)
+    x = layers.Conv2DTranspose(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
     for _ in range(num_conv - 1):
