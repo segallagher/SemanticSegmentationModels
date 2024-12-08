@@ -75,6 +75,7 @@ def encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_laye
         x = layers.Activation(activation)(x)
     # create a copy of the layer without pooling for skip connections
     skip_conn = x
+    # Pool
     x = layers.MaxPool2D(pool_size=(2,2))(x)
 
     return x, skip_conn
@@ -91,7 +92,8 @@ def bottleneck_block(kernel_size:tuple, activation:str, layer_size:int, append_l
 
 def decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, skip_layer, num_conv:int=1, padding:str='same'):
     # Upsample
-    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None)(layers.UpSampling2D(size=(2,2))(append_layer))
+    x = layers.UpSampling2D(size=(2,2))(append_layer)
+    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None)(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
     # Add skip connection
