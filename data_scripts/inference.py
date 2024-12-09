@@ -2,7 +2,7 @@ from keras.models import load_model
 from utils import load_dir, segmap_to_image
 import os
 import numpy as np
-from custom_metrics import dice_coef
+from custom_metrics import DiceCoefficient
 
 num_classes = 8
 color_mapping = {
@@ -21,8 +21,10 @@ output_dir = os.path.join(os.getcwd(), "inferenced_data")
 os.makedirs(output_dir, exist_ok=True)
 test_images, _ = load_dir(test_dir, num_classes, color_mapping)
 
+# Get metrics
+dice_coef = DiceCoefficient()
 #load model
-model = load_model('unet.h5', custom_objects={"dice_coef": dice_coef})
+model = load_model('autoencoder.h5', custom_objects={"DiceCoefficient": dice_coef})
 
 # get order files will be processed in (since load_dir() sorts how os.listdir() does)
 input_file_names:list = os.listdir(os.path.join(test_dir, "Images"))
