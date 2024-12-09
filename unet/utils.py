@@ -108,7 +108,7 @@ def decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_laye
     return x
 
 def create_unet(input_shape, num_classes, 
-               initial_filters=64, depth=3, conv_per_block:int=1, 
+               initial_filters=64, max_depth=3, conv_per_block:int=1, 
                kernel_size:tuple=(3,3), activation:str='relu', padding:str='same'):
     inputs = layers.Input(shape=input_shape)
     x = inputs
@@ -116,22 +116,22 @@ def create_unet(input_shape, num_classes,
     skip_conns = []
 
     # Encoder
-    for curr_depth in range(depth-1):
+    for curr_depth in range(max_depth-1):
        layer, skip_layer = encoder_block(kernel_size=kernel_size, activation=activation,
-                             layer_size=initial_filters * 2 ** (curr_depth+1), append_layer=x, num_conv=conv_per_block,
+                             layer_size=initial_filters * 2 ** (curr_depth), append_layer=x, num_conv=conv_per_block,
                              padding=padding)
        x = layer
        skip_conns.append(skip_layer)
     
     # Bottleneck
     x = bottleneck_block(kernel_size=kernel_size, activation=activation,
-                             layer_size=initial_filters * 2 ** (depth), append_layer=x, num_conv=conv_per_block,
+                             layer_size=initial_filters * 2 ** (max_depth-1), append_layer=x, num_conv=conv_per_block,
                              padding=padding)
     
     # Decoder
-    for curr_depth in reversed(range(depth-1)):
+    for curr_depth in reversed(range(max_depth-1)):
         x = decoder_block(kernel_size=kernel_size, activation=activation,
-                      layer_size=initial_filters * 2 ** (curr_depth+1), append_layer=x, skip_layer=skip_conns.pop(), num_conv=conv_per_block,
+                      layer_size=initial_filters * 2 ** (curr_depth), append_layer=x, skip_layer=skip_conns.pop(), num_conv=conv_per_block,
                       padding=padding)
 
     decoder_output = layers.Conv2D(num_classes, kernel_size=kernel_size, activation='softmax', padding=padding)(x)
