@@ -1,8 +1,8 @@
 {
     "output_name": "unet.h5",
     "input_shape": [256, 256, 3],
-    "initial_filters": 64,
-    "depth": 3,
+    "initial_filters": 128,
+    "max_depth": 3,
     "conv_per_block": 2,
     "kernel_size": [3, 3],
     "activation": "relu",
@@ -18,5 +18,9 @@
       "64,0,128": 6,
       "0,0,0": 7
     },
+    "batch_size": 2,
+    "max_epochs": 5000,
+    "initial_epoch": 163,
+    "model_path": "unet.h5",
     "data_path": "..//data"
   }

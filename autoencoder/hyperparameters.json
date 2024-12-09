@@ -1,9 +1,9 @@
 {
     "output_name": "autoencoder.h5",
     "input_shape": [256, 256, 3],
-    "encoder_layer_sizes": [32, 64, 128],
-    "bottleneck_size": 256,
-    "decoder_layer_sizes": [128, 64, 328],
+    "encoder_layer_sizes": [64, 128, 256],
+    "bottleneck_size": 512,
+    "decoder_layer_sizes": [256, 128, 64],
     "conv_per_block": 2,
     "kernel_size": [3, 3],
     "activation": "relu",
