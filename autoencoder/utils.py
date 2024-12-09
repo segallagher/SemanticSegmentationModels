@@ -86,11 +86,11 @@ def fcn_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_lay
 
 def fcn_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
     x = layers.UpSampling2D(size=(2,2))(append_layer)
-    x = layers.Conv2DTranspose(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
+    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
     for _ in range(num_conv - 1):
-        x = layers.Conv2DTranspose(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
+        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
         x = layers.BatchNormalization()(x)
         x = layers.Activation(activation)(x)
     return x
@@ -184,4 +184,6 @@ class LogBestEpoch(Callback):
             
             with open(self.output_name, 'w') as f:
                 json.dump(data, f, indent=4)
-                
+
+class LogArchitecture(Callback):
+    pass
