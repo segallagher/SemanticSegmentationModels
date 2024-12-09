@@ -164,6 +164,8 @@ cython_debug/
 # Semantic Segmentation Models specific
 *.h5
 *_metrics.json
+!published_models/*.h5
+!published_models/*_metrics.json
 /data
 /inferenced_data
 /saved_data
