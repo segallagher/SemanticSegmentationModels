@@ -1,11 +1,11 @@
-from keras import losses, optimizers
-from keras.metrics import OneHotMeanIoU
-from keras.models import load_model, Functional
+from keras import losses, optimizers, metrics, models, callbacks, src
 import tensorflow as tf
 from pathlib import Path
 from utils import load_data, create_fcn, DiceCoefficient, LogBestEpoch
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import json
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 curr_dir = Path(__file__).resolve().parent
 
@@ -28,9 +28,9 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"Error when reading hyperparameters: {e}")
 
-
-data_dir = curr_dir / hyperparam["data_path"]
-train_images, train_labels, val_images, val_labels, test_images = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
+# Load Data
+data_dir = Path(hyperparam["data_path"]).resolve()
+train_images, train_labels, val_images, val_labels, _ = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
 
 
 # Allow GPU memory growth to avoid running out of GPU memory
@@ -48,7 +48,7 @@ if gpus:
     print(e)
 
 # Create model metrics
-meaniou_metric = OneHotMeanIoU(num_classes=hyperparam["num_classes"])
+meaniou_metric = metrics.OneHotMeanIoU(num_classes=hyperparam["num_classes"])
 dice_coef = DiceCoefficient()
 optimizer = optimizers.Adam(learning_rate=hyperparam["learning_rate"])
 
@@ -56,7 +56,7 @@ optimizer = optimizers.Adam(learning_rate=hyperparam["learning_rate"])
 # Otherwise create a new model
 model = None
 if hyperparam.get("model_path"):
-    model: Functional = load_model(hyperparam["model_path"], custom_objects={"DiceCoefficient": dice_coef})
+    model: src.Functional = models.load_model(hyperparam["model_path"], custom_objects={"DiceCoefficient": dice_coef})
 else:
     model = create_fcn(hyperparam["input_shape"], hyperparam["num_classes"],
                    hyperparam["encoder_layer_sizes"], hyperparam["bottleneck_size"], hyperparam["decoder_layer_sizes"],
@@ -65,10 +65,11 @@ model.compile(optimizer=optimizer, loss=losses.categorical_crossentropy, metrics
 model.summary()
 
 # Callbacks
-earlystopping = EarlyStopping(monitor="one_hot_mean_io_u", patience=10, mode="max")
-checkpoint = ModelCheckpoint(filepath=hyperparam["output_name"], monitor="one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
-lr_scheduler = ReduceLROnPlateau(monitor="one_hot_mean_io_u", factor=0.9, patience=6)
-log_best_epoch = LogBestEpoch('one_hot_mean_io_u', ['accuracy', "dice_coefficient"], output_name="autoencoder_metrics.json")
+earlystopping = callbacks.EarlyStopping(monitor="val_one_hot_mean_io_u", patience=10, mode="max")
+checkpoint = callbacks.ModelCheckpoint(filepath=hyperparam["output_name"], monitor="val_one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
+lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.9, patience=6)
+log_best_epoch = LogBestEpoch('val_one_hot_mean_io_u', ['accuracy', "dice_coefficient"], output_name="autoencoder_metrics.json")
+tensorboard = callbacks.TensorBoard(log_dir="logs/autoencoder", histogram_freq=1)
 
 
 # Get training parameters from hyperparameters
@@ -86,5 +87,35 @@ if hyperparam.get("max_epochs"):
 
 # Train Model
 model.fit(x=train_images, y=train_labels, 
-            epochs=max_epochs, batch_size=batch_size, callbacks=[earlystopping, checkpoint, lr_scheduler, log_best_epoch],
+            epochs=max_epochs, batch_size=batch_size, callbacks=[earlystopping, checkpoint, lr_scheduler, log_best_epoch, tensorboard],
             shuffle=True, validation_data=(val_images, val_labels), initial_epoch=initial_epoch)
+
+# Get the model's predictions
+batch_size = 1
+val_pred = []
+val_labels_indicies = []
+
+for i in range(0, len(val_images), batch_size):
+    batch_images = val_images[i:i+batch_size]
+    batch_labels = val_labels[i:i+batch_size]
+    
+    # Predict and get argmax for the current batch
+    batch_pred = np.argmax(model.predict(batch_images, verbose=0), axis=-1)
+    batch_labels_indicies = np.argmax(batch_labels, axis=-1)
+    
+    # Append the results
+    val_pred.append(batch_pred)
+    val_labels_indicies.append(batch_labels_indicies)
+val_pred_flat = np.concatenate(val_pred).flatten()
+val_labels_indicies_flat = np.concatenate(val_labels_indicies).flatten()
+
+# Make confusion matrix and save as png
+cm = tf.math.confusion_matrix(val_labels_indicies_flat, val_pred_flat)
+plt.figure(figsize=(7, 5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, xticklabels=np.arange(hyperparam["num_classes"]), yticklabels=np.arange(hyperparam["num_classes"]))
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Autoencoder Confusion Matrix')
+plt.tight_layout()
+
+plt.savefig('autoencoder_confusion_matrix.png')
