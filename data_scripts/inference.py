@@ -3,6 +3,30 @@ from utils import load_dir, segmap_to_image
 import os
 import numpy as np
 from custom_metrics import DiceCoefficient
+import argparse
+
+# Set up argument parsing
+parser = argparse.ArgumentParser(description="Preprocess dataset for training, validation, and testing.")
+parser.add_argument(
+    "--model_path", 
+    type=str, 
+    required=True, 
+    help="Path to the model, should end in .keras"
+)
+
+parser.add_argument(
+    "--data_dir", 
+    type=str, 
+    default=os.path.join(os.getcwd(), "data", "test"),
+    required=False, 
+    help="Path to the directory to be segmented, defaults to data/test/"
+)
+
+args = parser.parse_args()
+
+model_path = args.model_path
+data_dir = args.data_dir
+output_dir = os.path.join(os.getcwd(), "inferenced_data")
 
 num_classes = 8
 color_mapping = {
@@ -15,19 +39,17 @@ color_mapping = {
     6: (64, 0, 128),   # Moving Car
     7: (0, 0, 0),      # Background Clutter
 }
-test_dir = os.path.join(os.getcwd(), "data", "test")
-output_dir = os.path.join(os.getcwd(), "inferenced_data")
 
 os.makedirs(output_dir, exist_ok=True)
-test_images, _ = load_dir(test_dir, num_classes, color_mapping)
+test_images, _ = load_dir(data_dir, num_classes, color_mapping)
 
 # Get metrics
 dice_coef = DiceCoefficient()
 #load model
-model = load_model('autoencoder.h5', custom_objects={"DiceCoefficient": dice_coef})
+model = load_model(model_path, custom_objects={"DiceCoefficient": dice_coef})
 
 # get order files will be processed in (since load_dir() sorts how os.listdir() does)
-input_file_names:list = os.listdir(os.path.join(test_dir, "Images"))
+input_file_names:list = os.listdir(os.path.join(data_dir, "images"))
 
 # inference each image individually
 for i, image in enumerate(test_images):
