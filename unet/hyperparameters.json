@@ -20,6 +20,5 @@
     },
     "batch_size": 2,
     "max_epochs": 5000,
-    "model_path": "unet.keras",
     "data_path": "data"
   }
