@@ -16,3 +16,4 @@ pip install pillow
 pip install tensorboard-plugin-customizable-plots
 pip install matplotlib
 pip install seaborn
+pip install tqdm
