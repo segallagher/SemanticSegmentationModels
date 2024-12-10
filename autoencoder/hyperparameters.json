@@ -1,5 +1,5 @@
 {
-    "output_name": "autoencoder.h5",
+    "output_name": "autoencoder.keras",
     "input_shape": [256, 256, 3],
     "encoder_layer_sizes": [64, 128, 256],
     "bottleneck_size": 512,
@@ -19,5 +19,5 @@
       "64,0,128": 6,
       "0,0,0": 7
     },
-    "data_path": "..\\data"
+    "data_path": "data"
   }

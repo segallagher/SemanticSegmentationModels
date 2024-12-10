@@ -1,5 +1,5 @@
 {
-    "output_name": "unet.h5",
+    "output_name": "unet.keras",
     "input_shape": [256, 256, 3],
     "initial_filters": 128,
     "max_depth": 3,
@@ -20,7 +20,6 @@
     },
     "batch_size": 2,
     "max_epochs": 5000,
-    "initial_epoch": 163,
-    "model_path": "unet.h5",
-    "data_path": "..//data"
+    "model_path": "unet.keras",
+    "data_path": "data"
   }

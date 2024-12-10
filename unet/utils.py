@@ -1,11 +1,10 @@
-from keras.callbacks import Callback
-import keras.backend as K
+from tensorflow.keras import callbacks, backend as K, metrics
 from keras import layers, models
-from keras.metrics import Metric
 from pathlib import Path
 from PIL import Image
 import numpy as np
 import json
+import numpy as np
 
 # Data loader
 # Loads data from a file structure like the one found on UAVid dataset
@@ -140,7 +139,7 @@ def create_unet(input_shape, num_classes,
     return model
 
 # Metrics
-class DiceCoefficient(Metric):
+class DiceCoefficient(metrics.Metric):
     def __init__(self, name='dice_coefficient', smooth=100, **kwargs):
         super(DiceCoefficient, self).__init__(name=name, **kwargs)
         self.smooth = smooth
@@ -175,7 +174,7 @@ class DiceCoefficient(Metric):
         self.pred_sum.assign(0.)
 
 
-class LogBestEpoch(Callback):
+class LogBestEpoch(callbacks.Callback):
     def __init__(self, monitor:str, additional_metrics:list=[], output_name:str="best_metrics.json"):
         super().__init__()
         # Get metric names
