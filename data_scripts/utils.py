@@ -3,6 +3,7 @@ import os
 import numpy as np
 from PIL import Image
 import glob
+from tqdm import tqdm
 
 
 # Load preprocessed data
@@ -62,7 +63,7 @@ def process_directory(input_directory:str, output_directory:str, size:tuple=(256
     resized_images = np.zeros((0, *size, color_channels), dtype=np.uint8)
     resized_labels = np.zeros((0, *size, color_channels), dtype=np.uint8)
 
-    for sequence in os.listdir(input_directory):
+    for sequence in tqdm(os.listdir(input_directory), desc=f"Processing sequences in {input_directory}"):
         sequence_dir = os.path.join(input_directory, sequence)
         img_path = os.path.join(sequence_dir, "images")
         label_path = os.path.join(sequence_dir, "labels")
