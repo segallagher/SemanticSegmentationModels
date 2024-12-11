@@ -76,7 +76,7 @@ tensorboard = callbacks.TensorBoard(log_dir="logs/autoencoder", histogram_freq=1
 initial_epoch = 0
 if hyperparam.get("initial_epoch"):
     initial_epoch = hyperparam["initial_epoch"]
-create_fcn
+
 batch_size = 2
 if hyperparam.get("batch_size"):
     initial_epoch = hyperparam["batch_size"]
