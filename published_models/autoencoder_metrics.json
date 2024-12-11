@@ -1,6 +1,6 @@
 {
-    "best-epoch": 38,
-    "val_one_hot_mean_io_u": 0.4413030445575714,
-    "accuracy": 0.8968422412872314,
-    "dice_coefficient": 0.8516945838928223
+    "best-epoch": 56,
+    "val_one_hot_mean_io_u": 0.4651007652282715,
+    "accuracy": 0.9168882966041565,
+    "dice_coefficient": 0.8808845281600952
 }
