@@ -1,7 +1,7 @@
 from keras import losses, optimizers, metrics, models, callbacks, src
 import tensorflow as tf
 from pathlib import Path
-from utils import load_data, create_fcn, DiceCoefficient, LogBestEpoch
+from utils import load_data, create_autoencoder, DiceCoefficient, LogBestEpoch
 import json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -58,7 +58,7 @@ model = None
 if hyperparam.get("model_path"):
     model: src.Functional = models.load_model(hyperparam["model_path"], custom_objects={"DiceCoefficient": dice_coef})
 else:
-    model = create_fcn(hyperparam["input_shape"], hyperparam["num_classes"],
+    model = create_autoencoder(hyperparam["input_shape"], hyperparam["num_classes"],
                    hyperparam["encoder_layer_sizes"], hyperparam["bottleneck_size"], hyperparam["decoder_layer_sizes"],
                    hyperparam["conv_per_block"], hyperparam["kernel_size"], hyperparam["activation"], hyperparam["padding"])
 model.compile(optimizer=optimizer, loss=losses.categorical_crossentropy, metrics=['accuracy', meaniou_metric, dice_coef])

@@ -62,7 +62,7 @@ def load_dir(directory:Path, num_classes:int, color_to_class_map:dict) -> tuple[
 
 
 # Create model
-def fcn_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
+def autoencoder_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
     x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
@@ -73,7 +73,7 @@ def fcn_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_
     x = layers.MaxPool2D(pool_size=(2,2))(x)
     return x
 
-def fcn_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
+def autoencoder_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
     x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
@@ -83,7 +83,7 @@ def fcn_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_lay
         x = layers.Activation(activation)(x)
     return x
 
-def fcn_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
+def autoencoder_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
     x = layers.UpSampling2D(size=(2,2))(append_layer)
     x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
     x = layers.BatchNormalization()(x)
@@ -94,19 +94,19 @@ def fcn_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_
         x = layers.Activation(activation)(x)
     return x
 
-def create_fcn(input_shape, num_classes, 
+def create_autoencoder(input_shape, num_classes, 
                encoder_layer_sizes:list, bottleneck_size:int, decoder_layer_sizes:list,
                conv_per_block:int=1, kernel_size:tuple=(3,3), activation:str='relu', padding:str='same'):
     inputs = layers.Input(shape=input_shape)
     x = inputs
 
     for size in encoder_layer_sizes:
-        x = fcn_encoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
+        x = autoencoder_encoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
 
-    x = fcn_bottleneck(kernel_size=kernel_size, activation=activation, layer_size=bottleneck_size, append_layer=x, num_conv=conv_per_block, padding=padding)
+    x = autoencoder_bottleneck(kernel_size=kernel_size, activation=activation, layer_size=bottleneck_size, append_layer=x, num_conv=conv_per_block, padding=padding)
 
     for size in decoder_layer_sizes:
-        x = fcn_decoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
+        x = autoencoder_decoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
 
     decoder_output = layers.Conv2D(num_classes, kernel_size=kernel_size, activation='softmax', padding=padding)(x)
 
