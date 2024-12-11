@@ -67,7 +67,7 @@ def fcn_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
     for _ in range(num_conv-1):
-        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
+        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
         x = layers.BatchNormalization()(x)
         x = layers.Activation(activation)(x)
     x = layers.MaxPool2D(pool_size=(2,2))(x)
