@@ -13,11 +13,11 @@ If you want to train using a GPU, you must have a CUDA supported GPU and install
 `source .venv/bin/activate`
 3. Run `install.sh`
 
-## Running
+## Training
 1. Download your dataset
 2. Preprocess your dataset, currently only provides a script to preprocess the uavid dataset (available at https://uavid.nl/) \
 Run the python script `preprocess_uavid_data.py` in the `data_scripts` directory through command line with argument `--dataset_dir` dataset_dir should be the folder containing the subfolders `uavid_train`, `uavid_val`, `uavid_test`
-3. Run your model \
+3. Train your model \
     3.1 Explanation \
     Each model architecture has a folder of the same name (IE: the autoencoder model would be in the autoencoder directory) \
 \
@@ -25,7 +25,7 @@ Run the python script `preprocess_uavid_data.py` in the `data_scripts` directory
     In the model architecture folder, modify the `hyperparameters.json` file \
 \
     3.3 Run Model Training
-    In the model architecture folder, run the python file of the architectures name (IE: the file to train the autoencoder in the autoencoder directory is `autoencoder.py`)
+    In the model architecture folder, run the python file `train.py`
 
 ## Output Models
 Models are saved to a file with the name \<architecture\>.keras \
