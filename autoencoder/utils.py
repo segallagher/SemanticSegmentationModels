@@ -4,7 +4,34 @@ from pathlib import Path
 from PIL import Image
 import numpy as np
 import json
-import numpy as np
+from io import StringIO
+import sys
+import re
+
+# Hyperparam
+def get_hyperparam():
+    curr_dir = Path(__file__).resolve().parent
+
+    # Get Hyperparameters
+    hyperparamPath = curr_dir / "hyperparameters.json"
+    hyperparam = None
+
+    try:
+        with open(hyperparamPath, 'r') as file:
+            # Load Hyperparameters
+            hyperparam = json.load(file)
+            # Convert json encoded map to python
+            hyperparam["color_mapping"] = {tuple(map(int, key.split(','))): value for key, value in hyperparam["color_mapping"].items()}
+            hyperparam["reverse_color_mapping"] = {value: key for key, value in hyperparam["color_mapping"].items()}
+            # Assign num_classes based off color_mapping
+            hyperparam["num_classes"] = len(hyperparam["color_mapping"])
+    except FileNotFoundError:
+        print("Hyperparameters file not found")
+    except json.JSONDecodeError:
+        print("Error decoding hyperparameters from json")
+    except Exception as e:
+        print(f"Error when reading hyperparameters: {e}")
+    return hyperparam
 
 # Data loader
 # Loads data from a file structure like the one found on UAVid dataset
@@ -149,8 +176,10 @@ class DiceCoefficient(metrics.Metric):
         self.pred_sum.assign(0.)
 
 
-class LogBestEpoch(callbacks.Callback):
-    def __init__(self, monitor:str, additional_metrics:list=[], output_name:str="best_metrics.json"):
+class LogTrainingMetrics(callbacks.Callback):
+    def __init__(self, monitor:str, additional_metrics:list=[], output_path:str="best_metrics.json",
+                 total_param:int=0, trainable_param:int=0, non_train_param:int=0,
+                 ):
         super().__init__()
         # Get metric names
         self.monitor = monitor
@@ -159,8 +188,12 @@ class LogBestEpoch(callbacks.Callback):
         self.best_epoch = None
         self.best_monitor_value = -float('inf')
         self.additional_metric_values = [-float('inf') for _ in additional_metrics]
+        # Count Parameters
+        self.total_param = total_param
+        self.trainable_param = trainable_param
+        self.non_train_param = non_train_param
         # Misc
-        self.output_name = output_name
+        self.output_path = output_path
 
     def on_epoch_end(self, epoch, logs=None):
         # Update metric values if epoch's primary monitor value is higher than previous best_monitor_value
@@ -177,9 +210,72 @@ class LogBestEpoch(callbacks.Callback):
             data = {
                 "best-epoch": self.best_epoch,
                 self.monitor: self.best_monitor_value,
+                "total_param": self.total_param,
+                "trainable_param": self.trainable_param,
+                "non_train_param": self.non_train_param,
             }
+            # Add additional metrics
             for i, metric in enumerate(self.additional_metric_values):
                 data[f"{self.additional_metrics[i]}"] = metric
-            
-            with open(self.output_name, 'w') as f:
+
+            # Write to json
+            with open(self.output_path, 'w') as f:
                 json.dump(data, f, indent=4)
+
+def get_paramCount(model: models.Model) -> tuple[int, int, int]:
+    # Capture summary output
+    string_io = StringIO()
+    original_stdout = sys.stdout
+    sys.stdout = string_io
+    
+    model.summary()
+
+    # Restore original output
+    sys.stdout = original_stdout
+
+    # Convert summary output to string
+    summary_str = string_io.getvalue()
+
+    # Parse parameter counts
+    total_param, trainable_param, non_train_param = 0, 0, 0
+    total_param_match = re.search(r"Total params: \s*([0-9,]+)", summary_str)
+    if total_param_match:
+        total_param = int(total_param_match.group(1).replace(",",""))
+    else:
+        print("Total Params not found")
+
+    trainable_param_match = re.search(r"Trainable params: \s*([0-9,]+)", summary_str)
+    if trainable_param_match:
+        trainable_param = int(trainable_param_match.group(1).replace(",",""))
+    else:
+        print("Trainable Params not found")
+
+    non_train_param_match = re.search(r"Non-trainable params: \s*([0-9,]+)", summary_str)
+    if non_train_param_match:
+        non_train_param = int(non_train_param_match.group(1).replace(",",""))
+    else:
+        print("Non Trainable Params not found")
+    return total_param, trainable_param, non_train_param
+
+# Inference
+
+def segmap_to_image(segmaps:np.ndarray, class_to_color_map:dict, output_dir:str=Path.cwd(), color_channels:int=3, filename:str=None):
+    for i, segmap in enumerate(segmaps):
+
+        # Get the class with the highest probability
+        argmax_labels = np.argmax(segmap, axis=-1)
+        
+        # convert labels to colors
+        image_arr = np.zeros((segmap.shape[0],segmap.shape[1], color_channels), dtype=np.uint8)
+        for label, color in class_to_color_map.items():
+            image_arr[argmax_labels == label] = color
+
+        # turn array into image
+        image = Image.fromarray(image_arr)
+
+        # Save image
+        if filename:
+            image.save(Path(output_dir) / filename)
+        else:
+            image.save(Path(output_dir) / f"{i}.png")
+        

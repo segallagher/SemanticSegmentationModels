@@ -172,3 +172,5 @@ cython_debug/
 /inferenced_data
 /saved_data
 /logs
+/output_dir
+/autoencoder/output_dir
