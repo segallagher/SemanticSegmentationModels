@@ -174,3 +174,4 @@ cython_debug/
 /logs
 /output_dir
 /autoencoder/output_dir
+/autoencoder/wandb

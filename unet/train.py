@@ -70,8 +70,8 @@ model.summary()
 # Callbacks
 earlystopping = callbacks.EarlyStopping(monitor="val_one_hot_mean_io_u", patience=10, mode="max")
 checkpoint = callbacks.ModelCheckpoint(filepath=hyperparam["output_name"], monitor="val_one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
-lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.9, patience=6)
-log_best_epoch = LogBestEpoch('val_one_hot_mean_io_u', ['accuracy', "dice_coefficient"], output_name="unet_metrics.json")
+lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.2, patience=5, mode='max')
+log_best_epoch = LogBestEpoch('val_one_hot_mean_io_u', ['val_accuracy', "val_dice_coefficient"], output_name="unet_metrics.json")
 tensorboard = callbacks.TensorBoard(log_dir="logs/unet", histogram_freq=1)
 
 # Get training parameters from hyperparameters

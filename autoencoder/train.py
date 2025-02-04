@@ -1,12 +1,22 @@
 from keras import losses, optimizers, metrics, models, callbacks, src
 import tensorflow as tf
 from pathlib import Path
-from utils import load_data, create_autoencoder, LogTrainingMetrics, get_paramCount, get_hyperparam
+from utils import load_data, create_autoencoder, LogTrainingMetrics, get_param_count, get_hyperparam, get_model_summary_string, get_mem_size
 from custom_metrics import DiceCoefficient
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import wandb
+from wandb.integration.keras import WandbMetricsLogger
+# from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
+# Initialize wandb
+wandb.init(
+   project="autoencoder",
+   name=f"{Path(__file__).parent.name}"
+)
+
+# Get Hyperparameters
 hyperparam = get_hyperparam()
 
 # Load Data
@@ -57,7 +67,9 @@ model.compile(optimizer=optimizer, loss=losses.categorical_crossentropy, metrics
 model.summary()
 
 # Get parameter counts
-total_param, trainable_param, non_train_param = get_paramCount(model=model)
+summary_str = get_model_summary_string(model=model)
+total_param, trainable_param, non_train_param = get_param_count(summary=summary_str)
+memory = get_mem_size(summary=summary_str)
 
 # Set log directory
 logdir= output_dir / "logs"
@@ -65,12 +77,11 @@ logdir= output_dir / "logs"
 # Callbacks
 earlystopping = callbacks.EarlyStopping(monitor="val_one_hot_mean_io_u", patience=10, mode="max")
 checkpoint = callbacks.ModelCheckpoint(filepath=output_dir / hyperparam["output_name"], monitor="val_one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
-lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.9, patience=6)
-log_training_metrics = LogTrainingMetrics('val_one_hot_mean_io_u', ['accuracy', "dice_coefficient"], output_path=output_dir / "training_metrics.json",
-                                          total_param=total_param, trainable_param=trainable_param, non_train_param=non_train_param
+lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.2, patience=5, mode='max')
+log_training_metrics = LogTrainingMetrics('val_one_hot_mean_io_u', ['val_accuracy', "val_dice_coefficient"], output_path=output_dir / "training_metrics.json",
+                                          total_param=total_param, trainable_param=trainable_param, non_train_param=non_train_param, memory=memory
                                           )
-tensorboard = callbacks.TensorBoard(log_dir=logdir, histogram_freq=1)
-
+wandb_cb = WandbMetricsLogger()
 
 # Get training parameters from hyperparameters
 initial_epoch = 0
@@ -87,8 +98,9 @@ if hyperparam.get("max_epochs"):
 
 # Train Model
 model.fit(x=train_images, y=train_labels, 
-            epochs=max_epochs, batch_size=batch_size, callbacks=[earlystopping, checkpoint, lr_scheduler, log_training_metrics, tensorboard],
+            epochs=max_epochs, batch_size=batch_size, callbacks=[earlystopping, checkpoint, lr_scheduler, log_training_metrics, wandb_cb],
             shuffle=True, validation_data=(val_images, val_labels), initial_epoch=initial_epoch)
+wandb.finish()
 
 # Get the model's predictions
 batch_size = 1

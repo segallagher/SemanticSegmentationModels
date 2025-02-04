@@ -1,9 +1,9 @@
 {
     "output_name": "model.keras",
     "input_shape": [256, 256, 3],
-    "encoder_layer_sizes": [256, 512,1024],
-    "bottleneck_size": 2048,
-    "decoder_layer_sizes": [1024,512, 256],
+    "encoder_layer_sizes": [8, 16, 32],
+    "bottleneck_size": 64,
+    "decoder_layer_sizes": [32, 16, 8],
     "conv_per_block": 2,
     "kernel_size": [3, 3],
     "activation": "relu",

@@ -178,7 +178,7 @@ class DiceCoefficient(metrics.Metric):
 
 class LogTrainingMetrics(callbacks.Callback):
     def __init__(self, monitor:str, additional_metrics:list=[], output_path:str="best_metrics.json",
-                 total_param:int=0, trainable_param:int=0, non_train_param:int=0,
+                 total_param:int=0, trainable_param:int=0, non_train_param:int=0, memory:str=0,
                  ):
         super().__init__()
         # Get metric names
@@ -194,6 +194,7 @@ class LogTrainingMetrics(callbacks.Callback):
         self.non_train_param = non_train_param
         # Misc
         self.output_path = output_path
+        self.memory = memory
 
     def on_epoch_end(self, epoch, logs=None):
         # Update metric values if epoch's primary monitor value is higher than previous best_monitor_value
@@ -213,6 +214,7 @@ class LogTrainingMetrics(callbacks.Callback):
                 "total_param": self.total_param,
                 "trainable_param": self.trainable_param,
                 "non_train_param": self.non_train_param,
+                "memory": self.memory,
             }
             # Add additional metrics
             for i, metric in enumerate(self.additional_metric_values):
@@ -222,7 +224,7 @@ class LogTrainingMetrics(callbacks.Callback):
             with open(self.output_path, 'w') as f:
                 json.dump(data, f, indent=4)
 
-def get_paramCount(model: models.Model) -> tuple[int, int, int]:
+def get_model_summary_string(model: models.Model) -> str:
     # Capture summary output
     string_io = StringIO()
     original_stdout = sys.stdout
@@ -234,28 +236,40 @@ def get_paramCount(model: models.Model) -> tuple[int, int, int]:
     sys.stdout = original_stdout
 
     # Convert summary output to string
-    summary_str = string_io.getvalue()
+    return string_io.getvalue()
 
+
+def get_param_count(summary: str) -> tuple[int, int, int]:
     # Parse parameter counts
     total_param, trainable_param, non_train_param = 0, 0, 0
-    total_param_match = re.search(r"Total params: \s*([0-9,]+)", summary_str)
+    total_param_match = re.search(r"Total params: \s*([0-9,]+)", summary)
     if total_param_match:
         total_param = int(total_param_match.group(1).replace(",",""))
     else:
         print("Total Params not found")
 
-    trainable_param_match = re.search(r"Trainable params: \s*([0-9,]+)", summary_str)
+    trainable_param_match = re.search(r"Trainable params: \s*([0-9,]+)", summary)
     if trainable_param_match:
         trainable_param = int(trainable_param_match.group(1).replace(",",""))
     else:
         print("Trainable Params not found")
 
-    non_train_param_match = re.search(r"Non-trainable params: \s*([0-9,]+)", summary_str)
+    non_train_param_match = re.search(r"Non-trainable params: \s*([0-9,]+)", summary)
     if non_train_param_match:
         non_train_param = int(non_train_param_match.group(1).replace(",",""))
     else:
         print("Non Trainable Params not found")
     return total_param, trainable_param, non_train_param
+
+def get_mem_size(summary: str) -> int:
+    
+    total_mem = 0
+    total_mem_match = re.search(r"Total params: [\s0-9,]*\(([0-9. A-Z]*)\)", summary)
+    if total_mem_match:
+        total_mem = total_mem_match.group(1)
+    else:
+        print("Total mem not found")
+    return total_mem
 
 # Inference
 

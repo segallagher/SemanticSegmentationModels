@@ -1,0 +1,2 @@
+run on HPC using command
+`sbatch --export=ALL,WANDB_API_KEY=<your-api-key>` train_model.slurm 
