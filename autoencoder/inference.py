@@ -1,8 +1,7 @@
 from keras.models import load_model
-from utils import load_dir, segmap_to_image, get_hyperparam
+from utils import load_dir, segmap_to_image, get_hyperparam, DiceCoefficient
 import os
 import numpy as np
-from custom_metrics import DiceCoefficient
 import argparse
 import time
 import json

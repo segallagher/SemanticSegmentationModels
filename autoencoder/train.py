@@ -1,14 +1,13 @@
 from keras import losses, optimizers, metrics, models, callbacks, src
 import tensorflow as tf
 from pathlib import Path
-from utils import load_data, create_autoencoder, LogTrainingMetrics, get_param_count, get_hyperparam, get_model_summary_string, get_mem_size
-from custom_metrics import DiceCoefficient
+from utils import load_data, DiceCoefficient, LogTrainingMetrics, get_param_count, get_hyperparam, get_model_summary_string, get_mem_size
+from model import create_autoencoder
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import wandb
 from wandb.integration.keras import WandbMetricsLogger
-# from wandb.keras import WandbMetricsLogger, WandbModelCheckpoint
 
 # Initialize wandb
 wandb.init(
@@ -26,7 +25,6 @@ if not data_dir.exists():
    raise Exception("Could not find data directory")
 
 train_images, train_labels, val_images, val_labels, _ = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
-
 
 # Allow GPU memory growth to avoid running out of GPU memory
 # code from https://www.tensorflow.org/guide/gpu

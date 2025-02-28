@@ -7,6 +7,8 @@ import json
 from io import StringIO
 import sys
 import re
+import wandb
+import time
 
 # Hyperparam
 def get_hyperparam():
@@ -87,59 +89,6 @@ def load_dir(directory:Path, num_classes:int, color_to_class_map:dict) -> tuple[
         lab_arr = np.stack(lab_list)
     return img_arr, lab_arr
 
-
-# Create model
-def autoencoder_encoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
-    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation(activation)(x)
-    for _ in range(num_conv-1):
-        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Activation(activation)(x)
-    x = layers.MaxPool2D(pool_size=(2,2))(x)
-    return x
-
-def autoencoder_bottleneck(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
-    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(append_layer)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation(activation)(x)
-    for _ in range(num_conv - 1):
-        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Activation(activation)(x)
-    return x
-
-def autoencoder_decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, num_conv:int=1, padding:str='same'):
-    x = layers.UpSampling2D(size=(2,2))(append_layer)
-    x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation(activation)(x)
-    for _ in range(num_conv - 1):
-        x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None, kernel_initializer='he_normal')(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Activation(activation)(x)
-    return x
-
-def create_autoencoder(input_shape, num_classes, 
-               encoder_layer_sizes:list, bottleneck_size:int, decoder_layer_sizes:list,
-               conv_per_block:int=1, kernel_size:tuple=(3,3), activation:str='relu', padding:str='same'):
-    inputs = layers.Input(shape=input_shape)
-    x = inputs
-
-    for size in encoder_layer_sizes:
-        x = autoencoder_encoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
-
-    x = autoencoder_bottleneck(kernel_size=kernel_size, activation=activation, layer_size=bottleneck_size, append_layer=x, num_conv=conv_per_block, padding=padding)
-
-    for size in decoder_layer_sizes:
-        x = autoencoder_decoder_block(kernel_size=kernel_size, activation=activation, layer_size=size, append_layer=x, num_conv=conv_per_block, padding=padding)
-
-    decoder_output = layers.Conv2D(num_classes, kernel_size=kernel_size, activation='softmax', padding=padding)(x)
-
-    model = models.Model(inputs=inputs, outputs=decoder_output)
-    return model
-
 # Metrics
 class DiceCoefficient(metrics.Metric):
     def __init__(self, name='dice_coefficient', smooth=100, **kwargs):
@@ -175,7 +124,6 @@ class DiceCoefficient(metrics.Metric):
         self.true_sum.assign(0.)
         self.pred_sum.assign(0.)
 
-
 class LogTrainingMetrics(callbacks.Callback):
     def __init__(self, monitor:str, additional_metrics:list=[], output_path:str="best_metrics.json",
                  total_param:int=0, trainable_param:int=0, non_train_param:int=0, memory:str=0,
@@ -188,6 +136,7 @@ class LogTrainingMetrics(callbacks.Callback):
         self.best_epoch = None
         self.best_monitor_value = -float('inf')
         self.additional_metric_values = [-float('inf') for _ in additional_metrics]
+        self.total_epoch = 0
         # Count Parameters
         self.total_param = total_param
         self.trainable_param = trainable_param
@@ -195,6 +144,7 @@ class LogTrainingMetrics(callbacks.Callback):
         # Misc
         self.output_path = output_path
         self.memory = memory
+        self.start_time = time.time()
 
     def on_epoch_end(self, epoch, logs=None):
         # Update metric values if epoch's primary monitor value is higher than previous best_monitor_value
@@ -205,20 +155,31 @@ class LogTrainingMetrics(callbacks.Callback):
             # update additional metric values
             self.additional_metric_values = [logs.get(metric) for metric in self.additional_metrics]
 
+        # Update epoch count
+        self.total_epoch += 1
+
     def on_train_end(self, logs = None):
         if self.best_epoch is not None:
             # Create data log
             data = {
-                "best-epoch": self.best_epoch,
+                "best_epoch": self.best_epoch,
+                "total_epoch": self.total_epoch,
                 self.monitor: self.best_monitor_value,
                 "total_param": self.total_param,
                 "trainable_param": self.trainable_param,
                 "non_train_param": self.non_train_param,
-                "memory": self.memory,
+                "memory_usage": self.memory,
             }
             # Add additional metrics
             for i, metric in enumerate(self.additional_metric_values):
                 data[f"{self.additional_metrics[i]}"] = metric
+            # Log Time
+            self.total_time = time.time() - self.start_time
+            data["time"] = self.total_time
+
+            # Log to wandb
+            for key in data:
+                wandb.config[key] = data[key]
 
             # Write to json
             with open(self.output_path, 'w') as f:

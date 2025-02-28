@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Login to wandb
-wandb login $WANDB_API_KEY
+python3 -m wandb login $WANDB_API_KEY
 
 if [ $? -ne 0 ]; then
     echo "wandb api key not provided"
