@@ -1,0 +1,9 @@
+{
+    "project": "unet",
+    "hyperparam_comparisons": {
+        "initial_filters": ["0_25xinitial_filters", "0_5xinitial_filters", "basis", "2xinitial_filters", "4xinitial_filters", "8xinitial_filters"],
+        "conv_per_block": ["minus1conv_per_block", "basis", "plus1conv_per_block", "plus2conv_per_block"],
+        "max_depth": ["minus2max_depth", "minus1max_depth", "basis", "plus1max_depth", "plus2max_depth"],
+        "kernel_size": ["1x1kernel", "2x2kernel", "basis", "5x5kernel", "7x7kernel", "9x9kernel", "11x11kernel"]
+    }
+}

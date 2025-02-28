@@ -1,9 +1,9 @@
 {
     "project": "autoencoder",
     "hyperparam_comparisons": {
-        "layer_params": ["basis", "0_25xlayer_params", "0_5xlayer_params", "2xlayer_params", "4xlayer_params"],
-        "conv_per_block": ["basis", "0_5xconv_per_block", "1_5xconv_per_block", "2xconv_per_block"],
-        "depth": ["basis", "minus2depth", "minus1depth", "plus1depth", "plus2depth", "plus3depth"],
-        "kernel_size": ["basis", "1x1kernel", "2x2kernel", "5x5kernel", "7x7kernel", "9x9kernel", "11x11kernel"]
+        "layer_params": ["0_25xlayer_params", "0_5xlayer_params", "basis", "2xlayer_params", "4xlayer_params", "8xlayer_params"],
+        "conv_per_block": ["minus1conv_per_block", "basis", "plus1conv_per_block", "plus2conv_per_block"],
+        "depth": ["minus2depth", "minus1depth", "basis", "plus1depth", "plus2depth", "plus3depth"],
+        "kernel_size": ["1x1kernel", "2x2kernel", "basis", "5x5kernel", "7x7kernel", "9x9kernel", "11x11kernel"]
     }
 }
