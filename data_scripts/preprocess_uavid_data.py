@@ -18,13 +18,14 @@ dataset_dir = args.dataset_dir
 train_dir = os.path.join(dataset_dir, "uavid_train")
 val_dir = os.path.join(dataset_dir, "uavid_val")
 test_dir = os.path.join(dataset_dir, "uavid_test")
-size = [256,256]
+# size = [256,256]
+size = [1024,1024]
 color_channels = 3
 
 base_dir = os.getcwd()
 prepocessed_dir = os.path.join(base_dir, "data")
 
 print("Processing", dataset_dir)
-process_directory(input_directory=train_dir, output_directory=os.path.join(prepocessed_dir, "train"))
-process_directory(input_directory=test_dir, output_directory=os.path.join(prepocessed_dir, "test"))
-process_directory(input_directory=val_dir, output_directory=os.path.join(prepocessed_dir, "val"))
+process_directory(input_directory=train_dir, output_directory=os.path.join(prepocessed_dir, "train"), size=size)
+process_directory(input_directory=test_dir, output_directory=os.path.join(prepocessed_dir, "test"), size=size)
+process_directory(input_directory=val_dir, output_directory=os.path.join(prepocessed_dir, "val"), size=size)
