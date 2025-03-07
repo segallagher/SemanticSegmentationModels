@@ -1,4 +1,5 @@
 import wandb
+from wandb.apis.public.runs import Runs, Run
 import json
 import argparse
 import pandas as pd
@@ -35,7 +36,14 @@ for entry in config['hyperparam_comparisons']:
 
 # Get API data
 api = wandb.Api()
-runs = api.runs(config['project'])
+runs: Runs = api.runs(config['project'])
+
+# Get implementation info
+if len(runs) > 1:
+    filepath = Path(config['project'])
+    filepath.mkdir(parents=True, exist_ok=True)
+    with open(filepath / "meta.json", "w") as file:
+        json.dump(runs[0].metadata, file, indent=4)
 
 # Generate Graphs
 
