@@ -29,13 +29,14 @@ def bottleneck_block(kernel_size:tuple, activation:str, layer_size:int, append_l
 def decoder_block(kernel_size:tuple, activation:str, layer_size:int, append_layer, skip_layer, num_conv:int=1, padding:str='same'):
     # Upsample
     x = layers.UpSampling2D(size=(2,2))(append_layer)
+
+    x = layers.concatenate([skip_layer, x], axis=3)
+
     x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None)(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation(activation)(x)
     # Add skip connection
     
-    x = layers.concatenate([skip_layer, x], axis=3)
-
     # Any additional convolutions
     for _ in range(num_conv - 1):
         x = layers.Conv2D(layer_size, kernel_size=kernel_size, padding=padding, activation=None)(x)
