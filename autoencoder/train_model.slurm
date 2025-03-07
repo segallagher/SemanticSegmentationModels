@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH --partition=l40s
+#SBATCH --partition=h100
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --tasks-per-node=4
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 #SBATCH --output=model_train%j.out
+#SBATCH --gpus=8
 
 module load CUDA
 
