@@ -18,8 +18,10 @@ dataset_dir = args.dataset_dir
 train_dir = os.path.join(dataset_dir, "uavid_train")
 val_dir = os.path.join(dataset_dir, "uavid_val")
 test_dir = os.path.join(dataset_dir, "uavid_test")
-# size = [256,256]
-size = [1024,1024]
+# size is of dimensions (height, width)
+size = [256,256]
+# size = [128,256]
+# size = [1024,1024]
 color_channels = 3
 
 base_dir = os.getcwd()
