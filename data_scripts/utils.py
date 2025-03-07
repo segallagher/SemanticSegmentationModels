@@ -54,12 +54,13 @@ def open_and_resize_images(directory:str, size:tuple=(256,256), interpolation:in
     image_list = []
     for index in range(len(image_paths)):
         image = Image.open(image_paths[index]).convert('RGB')
-        resized_image = image.resize(size, interpolation)
+        resized_image = image.resize(reversed(size), interpolation)
         image_list.append(resized_image)
     return np.array(image_list).astype(np.uint8)
 
 
 def process_directory(input_directory:str, output_directory:str, size:tuple=(256,256), color_channels:int=3) -> None:
+    # Create arrays with shape (height, width, color_channels)
     resized_images = np.zeros((0, *size, color_channels), dtype=np.uint8)
     resized_labels = np.zeros((0, *size, color_channels), dtype=np.uint8)
 
