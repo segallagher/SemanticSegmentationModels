@@ -141,13 +141,17 @@ def bar_graph(title: str, run_dict: dict, x_label:str, y_label:str, base_filenam
 
         # Plot data
         ax = df.plot.bar(rot=0)
-        ax.set_xticklabels(run_names,rotation=45, fontsize=10)
+        ax.set_xticklabels(run_names,rotation=35, fontsize=10)
 
         # Labeling and title
         ax.set_ylabel(y_label)
         ax.set_xlabel(x_label)
         ax.set_title(title)
-        ax.legend(labels=legend_labels)
+        ax.legend(labels=legend_labels, loc="lower right")
+
+        # Add Grid
+        ax.grid(axis='y')
+        ax.set_axisbelow(True)
 
         # Add more room at bottom of graph for rotated xticks
         plt.subplots_adjust(bottom=0.3)
@@ -213,7 +217,7 @@ create_graph(
     x_label="Seconds",
     base_filename="gpu",
     project=config['project'],
-    smoothing_window=3,
+    # smoothing_window=3,
     )
 create_graph(
     title="CPU Utilization over Time",
