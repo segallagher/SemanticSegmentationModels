@@ -179,3 +179,5 @@ cython_debug/
 /unet/wandb
 /graphs/autoencoder
 /graphs/unet
+/autoencoder/tmp
+/unet/tmp

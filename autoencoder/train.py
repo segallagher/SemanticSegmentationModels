@@ -17,12 +17,14 @@ wandb.init(
 
 # Get Hyperparameters
 hyperparam = get_hyperparam()
+print(f"Hyperparameters: {hyperparam}")
+
 
 # Load Data
 data_dir = Path(hyperparam["data_path"]).resolve()
 
 if not data_dir.exists():
-   raise Exception("Could not find data directory")
+   raise Exception(f"Could not find data directory: {data_dir}")
 
 train_images, train_labels, val_images, val_labels, _ = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
 
@@ -72,14 +74,6 @@ memory = get_mem_size(summary=summary_str)
 # Set log directory
 logdir= output_dir / "logs"
 
-# Callbacks
-earlystopping = callbacks.EarlyStopping(monitor="val_one_hot_mean_io_u", patience=10, mode="max")
-checkpoint = callbacks.ModelCheckpoint(filepath=output_dir / hyperparam["output_name"], monitor="val_one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
-lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.2, patience=5, mode='max')
-log_training_metrics = LogTrainingMetrics('val_one_hot_mean_io_u', ['val_accuracy', "val_dice_coefficient"], output_path=output_dir / "training_metrics.json",
-                                          total_param=total_param, trainable_param=trainable_param, non_train_param=non_train_param, memory=memory
-                                          )
-wandb_cb = WandbMetricsLogger()
 
 # Get training parameters from hyperparameters
 initial_epoch = 0
@@ -93,6 +87,39 @@ if hyperparam.get("batch_size"):
 max_epochs = 5000
 if hyperparam.get("max_epochs"):
     max_epochs = hyperparam["max_epochs"]
+
+# Calculate forward pass FLOPs per sample
+@tf.function
+def forward_pass(x):
+    return model(x, training=False)
+
+sample_input = train_images[:1]
+concrete_train_function = forward_pass.get_concrete_function(
+    tf.TensorSpec(
+        shape=sample_input.shape,
+        dtype=sample_input.dtype,
+    )
+)
+print("Profiling model graph ", type(concrete_train_function))
+profile = tf.compat.v1.profiler.profile(
+   graph=concrete_train_function.graph,
+   options=tf.compat.v1.profiler.ProfileOptionBuilder.float_operation()
+)
+forward_flops_per_sample = profile.total_float_ops
+
+print("forward pass FLOPs per example: ", forward_flops_per_sample)
+# Calculate total FLOPs in LogTrainingMetrics
+forward_flops_per_epoch = forward_flops_per_sample * train_images.shape[0]
+
+# Callbacks
+earlystopping = callbacks.EarlyStopping(monitor="val_one_hot_mean_io_u", patience=10, mode="max")
+checkpoint = callbacks.ModelCheckpoint(filepath=output_dir / hyperparam["output_name"], monitor="val_one_hot_mean_io_u", save_best_only=True, mode="max", verbose=1)
+lr_scheduler = callbacks.ReduceLROnPlateau(monitor="val_one_hot_mean_io_u", factor=0.2, patience=5, mode='max')
+log_training_metrics = LogTrainingMetrics('val_one_hot_mean_io_u', ['val_accuracy', "val_dice_coefficient"], output_path=output_dir / "training_metrics.json",
+                                          total_param=total_param, trainable_param=trainable_param, non_train_param=non_train_param, memory=memory,
+                                          forward_FLOPs_per_epoch=forward_flops_per_epoch,
+                                          )
+wandb_cb = WandbMetricsLogger()
 
 # Train Model
 model.fit(x=train_images, y=train_labels, 

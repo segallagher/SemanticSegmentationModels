@@ -9,13 +9,17 @@ import sys
 import re
 import wandb
 import time
+import os
 
 # Hyperparam
 def get_hyperparam():
     curr_dir = Path(__file__).resolve().parent
 
+    hyperparam_file=os.getenv("HYPERPARAM_FILE", "hyperparameters.json")
+
     # Get Hyperparameters
-    hyperparamPath = curr_dir / "hyperparameters.json"
+    hyperparamPath = curr_dir / hyperparam_file
+    print(f"Getting hyperparameters from {hyperparamPath}")
     hyperparam = None
 
     try:
@@ -126,7 +130,7 @@ class DiceCoefficient(metrics.Metric):
 
 class LogTrainingMetrics(callbacks.Callback):
     def __init__(self, monitor:str, additional_metrics:list=[], output_path:str="best_metrics.json",
-                 total_param:int=0, trainable_param:int=0, non_train_param:int=0, memory:str=0,
+                 total_param:int=0, trainable_param:int=0, non_train_param:int=0, memory:str=0, forward_FLOPs_per_epoch:int=0,
                  ):
         super().__init__()
         # Get metric names
@@ -145,6 +149,7 @@ class LogTrainingMetrics(callbacks.Callback):
         self.output_path = output_path
         self.memory = memory
         self.start_time = time.time()
+        self.forward_flops_per_epoch = forward_FLOPs_per_epoch
 
     def on_epoch_end(self, epoch, logs=None):
         # Update metric values if epoch's primary monitor value is higher than previous best_monitor_value
@@ -169,6 +174,8 @@ class LogTrainingMetrics(callbacks.Callback):
                 "trainable_param": self.trainable_param,
                 "non_train_param": self.non_train_param,
                 "memory_usage": self.memory,
+                "forward_flops_per_epoch": self.forward_flops_per_epoch,
+                "total_forward_flops": self.forward_flops_per_epoch * self.total_epoch,
             }
             # Add additional metrics
             for i, metric in enumerate(self.additional_metric_values):
