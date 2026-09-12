@@ -260,4 +260,3 @@ def segmap_to_image(segmaps:np.ndarray, class_to_color_map:dict, output_dir:str=
             image.save(Path(output_dir) / filename)
         else:
             image.save(Path(output_dir) / f"{i}.png")
-        

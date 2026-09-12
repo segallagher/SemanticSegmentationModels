@@ -29,7 +29,6 @@ run.log_artifact(hyperparam_artifact)
 hyperparam = get_hyperparam()
 print(f"Hyperparameters: {hyperparam}")
 
-
 # Load Data
 data_dir = Path(hyperparam["data_path"]).resolve()
 
@@ -83,7 +82,6 @@ memory = get_mem_size(summary=summary_str)
 
 # Set log directory
 logdir= output_dir / "logs"
-
 
 # Get training parameters from hyperparameters
 initial_epoch = 0
