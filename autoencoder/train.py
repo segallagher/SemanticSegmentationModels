@@ -8,12 +8,22 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import wandb
 from wandb.integration.keras import WandbMetricsLogger
+import os
 
 # Initialize wandb
-wandb.init(
+run = wandb.init(
    project="autoencoder",
    name=f"{Path(__file__).parent.name}"
 )
+
+# Upload artifacts
+hyperparam_artifact = wandb.Artifact(
+   name=f"hyperparameters-{run.id}",
+   type="hyperparameters",
+)
+hyperparam_file=os.getenv("HYPERPARAM_FILE", "hyperparameters.json")
+hyperparam_artifact.add_file(hyperparam_file)
+run.log_artifact(hyperparam_artifact)
 
 # Get Hyperparameters
 hyperparam = get_hyperparam()

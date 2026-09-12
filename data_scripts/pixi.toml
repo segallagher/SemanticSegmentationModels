@@ -1,0 +1,12 @@
+[workspace]
+authors = ["segallagher <segallagher@alaska.edu>"]
+channels = ["conda-forge"]
+name = "data_scripts"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+pandas = ">=3.0.5,<4"
+wandb = ">=0.30.0,<0.31"

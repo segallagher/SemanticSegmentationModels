@@ -181,3 +181,4 @@ cython_debug/
 /graphs/unet
 /autoencoder/tmp
 /unet/tmp
+/data_scripts/wandb
