@@ -1,0 +1,16 @@
+program: sweep.py
+method: random
+run_cap: 20
+
+metric:
+  name: val_one_hot_mean_io_u
+  goal: maximize
+
+parameters:
+  learning_rate:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 1e-1
+
+  epochs:
+    value: 10
