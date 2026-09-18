@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import argparse
+from pathlib import Path
 
 parser = argparse.ArgumentParser(
     prog="AnalyzeWANDBProjectMetrics",
@@ -8,13 +9,17 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("-p", "--project", dest="project")
+parser.add_argument("-d", "--destination", dest="destination", default="outputs")
 
 args = parser.parse_args()
 
 if not args.project:
     raise Exception("You must provide --project")
 
-df = pd.read_csv(f"{args.project}-metrics.csv")
+path = Path(args.destination)
+path.mkdir(parents=True, exist_ok=True)
+
+df = pd.read_csv(path / f"{args.project}-metrics.csv")
 
 variants = {}
 
@@ -40,6 +45,7 @@ columns = [
     "std_#Epochs",
     "mean_FLOPs",
     "std_FLOPs",
+    "memory(MB)",
 ]
 analyzsed_df = pd.DataFrame(columns=columns)
 
@@ -68,6 +74,18 @@ for var_name in variants:
     epoch_mean = np.mean(epochs)
     FLOP_mean = np.mean(FLOPs)
 
+    memory_str = [run["memory_usage"] for run in variants[var_name]][0]
+    if not isinstance(memory_str, str):
+        print(memory_str)
+    mem_num, mem_multiplex = memory_str.split()
+    mem_num = float(mem_num)
+    multiplexer_map = {
+        "KB": 1 / 1024,
+        "MB": 1,
+        "GB": 1024,
+    }
+    memory = mem_num * multiplexer_map[mem_multiplex]
+
     analyzsed_df.loc[len(analyzsed_df)] = {
         "variant": var_name,
         "mean_mIoU": miou_mean,
@@ -84,6 +102,8 @@ for var_name in variants:
         "std_#Epochs": epoch_std,
         "mean_FLOPs": FLOP_mean,
         "std_FLOPs": FLOP_std,
+        "memory(MB)": memory,
     }
 
-analyzsed_df.to_csv(f"{args.project}-analyzed.csv")
+
+analyzsed_df.to_csv(path / f"{args.project}-analyzed.csv", index=False)
