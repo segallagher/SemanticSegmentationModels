@@ -5,7 +5,7 @@
 #SBATCH --tasks-per-node=4
 #SBATCH --time=10:00:00
 #SBATCH --output=model_train%j.out
-#SBATCH --gpus=8
+#SBATCH --gpus=1
 
 module load CUDA
 

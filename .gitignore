@@ -169,6 +169,8 @@ cython_debug/
 !published_models/*_metrics.json
 !published_models/*.png
 /data
+/data_augmented
+/data_save
 /inferenced_data
 /saved_data
 /logs
@@ -182,3 +184,5 @@ cython_debug/
 /autoencoder/tmp
 /unet/tmp
 /data_scripts/wandb
+/data_scripts/outputs
+/data_scripts/*_table.txt

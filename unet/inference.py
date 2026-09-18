@@ -51,7 +51,7 @@ inference_metrics["disk_size"] = model_path.stat().st_size
 hyperparam = get_hyperparam()
 
 # Get images from test directory
-test_images, _ = load_dir(data_dir, hyperparam["num_classes"], hyperparam["reverse_color_mapping"])
+test_images, _ = load_dir(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
 
 # Get metrics
 dice_coef = DiceCoefficient()
@@ -74,7 +74,7 @@ for i, image in enumerate(test_images):
     segmap = model.predict(expanded_img, verbose=0)
     stop_time = time.time_ns()
     inference_times.append(stop_time-start_time)
-    segmap_to_image(segmap, hyperparam["reverse_color_mapping"], inference_dir, filename=f"{input_file_names[i].split('.')[0]}_label.png")
+    segmap_to_image(segmap, hyperparam["color_mapping"], inference_dir, filename=f"{input_file_names[i].split('.')[0]}_label.png")
 inference_metrics["inference_times"] = inference_times
 inference_metrics["avg_inference_time"] = np.average(np.array(inference_times))
 

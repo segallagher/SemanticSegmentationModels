@@ -35,7 +35,7 @@ data_dir = Path(hyperparam["data_path"]).resolve()
 if not data_dir.exists():
    raise Exception("Could not find data directory")
 
-train_images, train_labels, val_images, val_labels, _ = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
+train_images, train_labels, val_images, val_labels, test_images, test_labels = load_data(data_dir, hyperparam["num_classes"], hyperparam["color_mapping"])
 
 # Allow GPU memory growth to avoid running out of GPU memory
 # code from https://www.tensorflow.org/guide/gpu
@@ -133,6 +133,20 @@ wandb_cb = WandbMetricsLogger()
 model.fit(x=train_images, y=train_labels, 
             epochs=max_epochs, batch_size=batch_size, callbacks=[earlystopping, checkpoint, lr_scheduler, log_training_metrics, wandb_cb],
             shuffle=True, validation_data=(val_images, val_labels), initial_epoch=initial_epoch)
+
+# Test model
+test_metrics = model.evaluate(
+   test_images,
+   test_labels,
+   batch_size=batch_size,
+   return_dict=True,
+)
+
+wandb.log({
+   f"test_{name}": value
+   for name, value in test_metrics.items()
+})
+
 wandb.finish()
 
 # Get the model's predictions

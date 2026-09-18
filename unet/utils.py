@@ -48,8 +48,8 @@ def load_data(directory:Path, num_classes:int, color_to_class_map:dict) -> tuple
 
     train_images, train_labels = load_dir(train_dir, num_classes, color_to_class_map)
     val_images, val_labels = load_dir(val_dir, num_classes, color_to_class_map)
-    test_images, _ = load_dir(test_dir, num_classes, color_to_class_map)
-    return train_images, train_labels, val_images, val_labels, test_images
+    test_images, test_labels = load_dir(test_dir, num_classes, color_to_class_map)
+    return train_images, train_labels, val_images, val_labels, test_images, test_labels
 
 # loads a directory from the UAVid dataset
 def load_dir(directory:Path, num_classes:int, color_to_class_map:dict) -> tuple[np.ndarray, np.ndarray]:
@@ -241,7 +241,7 @@ def get_mem_size(summary: str) -> int:
 
 # Inference
 
-def segmap_to_image(segmaps:np.ndarray, class_to_color_map:dict, output_dir:str=Path.cwd(), color_channels:int=3, filename:str=None):
+def segmap_to_image(segmaps:np.ndarray, color_to_class_map:dict, output_dir:str=Path.cwd(), color_channels:int=3, filename:str=None):
     for i, segmap in enumerate(segmaps):
 
         # Get the class with the highest probability
@@ -249,7 +249,7 @@ def segmap_to_image(segmaps:np.ndarray, class_to_color_map:dict, output_dir:str=
         
         # convert labels to colors
         image_arr = np.zeros((segmap.shape[0],segmap.shape[1], color_channels), dtype=np.uint8)
-        for label, color in class_to_color_map.items():
+        for color, label in color_to_class_map.items():
             image_arr[argmax_labels == label] = color
 
         # turn array into image
