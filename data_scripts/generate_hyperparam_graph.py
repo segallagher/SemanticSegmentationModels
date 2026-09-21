@@ -61,6 +61,7 @@ def generate_graph(
         x_scale = lambda x: x,
         legend_loc: str = "upper left",
         logarithmic_FLOPs_axis: bool = False,
+        x_axis_label: str = None,
     ):
     x_label = []
     x = []
@@ -117,13 +118,12 @@ def generate_graph(
     )
 
     if logarithmic_FLOPs_axis:
-        fit2 = np.polyfit(x_scale(x), np.log(y2), 2)
+        fit2 = np.polyfit(x_scale(x), np.log(y2), 1)
         log_y2_fit = np.polyval(fit2, x_scale(x_fit))
         y2_fit = np.exp(log_y2_fit)
         ax2.set_yscale("log")
     else:
         fit2 = np.polyfit(x_scale(x), y2, 2)
-
         y2_fit = np.polyval(fit2, x_scale(x_fit))
 
 
@@ -137,7 +137,7 @@ def generate_graph(
     )
 
     # Plot functions
-    equation1 = fr"-- $y={fit1[0]:.3f}x^2{fit1[1]:+.3f}x{fit1[2]:+.3f}$"
+    equation1 = fr"--  $y={fit1[0]:.3f}x^2{fit1[1]:+.3f}x{fit1[2]:+.3f}$"
     fig.text(
         0.25, 0.1,
         equation1,
@@ -146,22 +146,26 @@ def generate_graph(
         fontsize=15,
         fontweight="bold",
     )
-    a = re.sub(
-        r"e(-?)0+(\d+)", r"e\1\2",
-        f"{fit2[0]:.2e}".replace("e+","e")
-    )
-    b = re.sub(
-        r"e(-?)0+(\d+)", r"e\1\2",
-        f"{fit2[1]:+.2e}".replace("e+","e")
-    )
-    c = re.sub(
-        r"e(-?)0+(\d+)", r"e\1\2",
-        f"{fit2[2]:+.2e}".replace("e+","e")
-    )
-    equation2 = fr"— $y={a}x^2{b}x{c}$"
+    
+    if logarithmic_FLOPs_axis:
+        equation2 = fr"—  $y=e^{{{float(fit2[0]):.2f}\times \log_2(x) + {float(fit2[1]):.2f}}}$"
+    else:
+        signs = []
+        a_coef, a_exp = f"{fit2[0]:.{2}e}".split("e")
+        signs.append("") if float(a_coef) > 0 else signs.append("")
+        b_coef, b_exp = f"{fit2[0]:.{2}e}".split("e")
+        signs.append("+") if float(b_coef) > 0 else signs.append("")
+        c_coef, c_exp = f"{fit2[0]:.{2}e}".split("e")
+        signs.append("+") if float(c_coef) > 0 else signs.append("")
+        equation2 = (
+            fr"—  $y="
+            fr"{{{signs[0]}}}{{{a_coef}}}\mathrm{{e}}^{{{int(a_exp)}}}x^2"
+            fr"{{{signs[1]}}}{{{b_coef}}}\mathrm{{e}}^{{{int(b_exp)}}}x"
+            fr"{{{signs[2]}}}{{{c_coef}}}\mathrm{{e}}^{{{int(c_exp)}}}$"
+        )
     fig.text(
         0.75, 0.1,
-        equation2,
+        s=equation2,
         ha="center",
         color="tab:orange",
         fontsize=15,
@@ -176,7 +180,7 @@ def generate_graph(
     ax1.set_xticks(x)
     ax1.set_xticklabels(x_label)
 
-    ax1.set_xlabel("Runs")
+    ax1.set_xlabel(x_axis_label)
     ax1.set_ylabel("mIoU", color="steelblue")
     ax1.tick_params(axis="y", labelcolor="steelblue")
 
@@ -216,6 +220,7 @@ if args.project == "autoencoder":
         x_scale=np.log2,
         logarithmic_FLOPs_axis=True,
         legend_loc="lower right",
+        x_axis_label = "Filters",
     )
 
     # Depth
@@ -231,6 +236,7 @@ if args.project == "autoencoder":
         depth_comparison_variants,
         "Depth",
         legend_loc="center left",
+        x_axis_label = "Depth",
     )
 
     # Convolutions
@@ -244,6 +250,7 @@ if args.project == "autoencoder":
         convolution_comparison_variants,
         "Convolutions per Block",
         legend_loc="lower right",
+        x_axis_label = "Convolutions per Block",
     )
 
     # Kernel
@@ -260,6 +267,7 @@ if args.project == "autoencoder":
         kernel_comparison_variants,
         "Kernel",
         legend_loc="lower right",
+        x_axis_label = "Kernel",
     )
 elif args.project == "unet":
 
@@ -278,6 +286,7 @@ elif args.project == "unet":
         legend_loc="lower right",
         x_scale=np.log2,
         logarithmic_FLOPs_axis=True,
+        x_axis_label = "Filters",
     )
 
     # Depth
@@ -293,6 +302,7 @@ elif args.project == "unet":
         depth_comparison_variants,
         "Depth",
         legend_loc="lower right",
+        x_axis_label = "Depth",
     )
 
     # Convolutions
@@ -306,6 +316,7 @@ elif args.project == "unet":
         convolution_comparison_variants,
         "Convolutions per Block",
         legend_loc="lower right",
+        x_axis_label = "Convolutions per Block",
     )
 
     # Kernel
@@ -322,4 +333,5 @@ elif args.project == "unet":
         kernel_comparison_variants,
         "Kernel",
         legend_loc="lower right",
+        x_axis_label = "Kernel",
     )
