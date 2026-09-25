@@ -3,11 +3,10 @@ import numpy as np
 import argparse
 from pathlib import Path
 import matplotlib.pyplot as plt
-import re
-
 from scipy.optimize import curve_fit
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
 
 x = np.array([0.25, 0.5, 1, 5, 10, 20])
 y = np.array([1.2, 1.5, 2.1, 3.8, 5.5, 8.2])
@@ -54,6 +53,9 @@ plt.rcParams.update({
     "ytick.labelsize": 15,
     "legend.fontsize": 12,
 })
+
+equation_fontsize = 18
+equation_spacing = 0.05
 
 def generate_graph(
         comparison_list: list[tuple],
@@ -139,11 +141,11 @@ def generate_graph(
     # Plot functions
     equation1 = fr"--  $y={fit1[0]:.3f}x^2{fit1[1]:+.3f}x{fit1[2]:+.3f}$"
     fig.text(
-        0.25, 0.1,
+        0.25-equation_spacing, 0.1,
         equation1,
         ha="center",
         color="tab:blue",
-        fontsize=15,
+        fontsize=equation_fontsize,
         fontweight="bold",
     )
     
@@ -164,11 +166,11 @@ def generate_graph(
             fr"{{{signs[2]}}}{{{c_coef}}}\mathrm{{e}}^{{{int(c_exp)}}}$"
         )
     fig.text(
-        0.75, 0.1,
+        0.75+equation_spacing, 0.1,
         s=equation2,
         ha="center",
         color="tab:orange",
-        fontsize=15,
+        fontsize=equation_fontsize,
         fontweight="bold",
     )
 

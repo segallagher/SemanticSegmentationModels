@@ -23,8 +23,9 @@ df = pd.read_csv(path / f"{args.project}-analyzed.csv")
 variant_map = df.set_index("variant").to_dict(orient="index")
 
 table_header = r"""
-\begin{table*}[ht]
+\begin{table*}[htp]
     \centering
+    \scriptsize
     \caption{PROJECT HYPERPARAM Results}
     \label{LABEL}
     \begin{tabular}{
@@ -75,7 +76,7 @@ def generate_row(
     row = ""
     row += f"\n\t\t{hyperparam_value} &"
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\num[
                 table-format=1.3,
                 round-mode = places,
@@ -89,7 +90,7 @@ def generate_row(
             ]{{{mIoU_std}}}
         }} &"""
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\num[
                 table-format=1.3,
                 round-mode = places,
@@ -103,7 +104,7 @@ def generate_row(
             ]{{{acc_std}}}
         }} &"""
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\num[
                 table-format=1.3,
                 round-mode = places,
@@ -118,7 +119,7 @@ def generate_row(
         }} &"""
     row += f"\n\t\t{int(num_parameters)} &"
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\makebox[3em][r]{{
                 \\num[
                     round-mode = places,
@@ -134,7 +135,7 @@ def generate_row(
             }}
         }} &"""
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\makebox[2.5em][r]{{
                 \\num[
                     table-format=3.1,
@@ -152,7 +153,7 @@ def generate_row(
             }}
         }} &"""
     row += f"""
-        \\multicolumn{{1}}{{c}}{{
+        \\multicolumn{{1}}{{c@{{}}}}{{
             \\num[
                 exponent-mode = scientific,
                 output-exponent-marker = e,
